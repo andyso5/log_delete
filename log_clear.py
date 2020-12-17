@@ -51,40 +51,38 @@ class ClearLog(object):
 
     def _collect_all_log(self, dir_path):
         # dir_path is abspath
-        chosen_file = []
+        #chosen_file = []
         day_class = set()
 
         if not os.path.exists(dir_path):
             print("dir path to clear log dosen't exist")
-            return chosen_file, day_class
+            return day_class#chosen_file, day_class
         for element in os.listdir(dir_path):
             abs_path = os.path.join(dir_path, element)
             # TODO a dir may exist more than one type log, such as ~20201212.txt and 20201212.txt
             if os.path.isfile(abs_path) and self._is_target(element):
-                chosen_file.append(abs_path)
-                day_class.update(element)
-        return chosen_file, day_class
+                #chosen_file.append(abs_path)
+                print("element: %s" % element)
+                day_class.add(element)
+                print("updated: %s" %str(day_class))
+        return day_class#chosen_file, day_class
     
-    def _delete_file(self, chosen_file, day_class):
-        if not chosen_file:
-            return
+    def _delete_file(self, day_class):
         day_class = list(day_class)
         day_class.sort(reverse=True) #descent
-        save_day = day_class[:self._limit]
-        for file_path in chosen_file:
-            if file_path in save_day:
-                continue
-            else:
-                try:
-                    os.remove(file_path)
-                except:
-                    print("fail to remove %s" %file_path)
+        delete_days = day_class[self._limit:]
+        print("%s"%str(delete_days))
+        for file_path in delete_days:
+            try:
+                os.remove(file_path)
+            except:
+                print("fail to remove %s" %file_path)
 
     def run(self):
         # TODO is it neccessary to traverse all sub dir path? 
         for dir_path in self._dir_list:
-            chosen_file, day_class = self._collect_all_log(dir_path)
-            self._delete_file(chosen_file, day_class)
+            day_class = self._collect_all_log(dir_path)
+            self._delete_file(day_class)
     
         
 
