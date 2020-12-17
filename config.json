@@ -1,5 +1,5 @@
 {
     "limit": 3,
-    "dir_path": ["/home/xyz/xiaoao/log_clear"],
+    "dir_path": ["/home/xiaoao/xiaoao/log_delete"],
     "file_class": ["json", "txt"]
 }
