@@ -22,12 +22,27 @@ class ClearLog(object):
             cnf_path = self._gen_default_path()
         self._read_cnf(cnf_path)
         self._today_time_tuple = time.localtime()
+        self.main_path = self._gen_default_target_path()
 
     def _gen_default_path(self):
         default_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
         return default_path
+    
+    def _gen_default_target_path(self):
+        splits = os.path.abspath(__file__).split(os.path.sep)
+        return os.path.sep.join(splits[:-3])
+
+    def relative2abs(self, relative):
+        ret = os.path.join(self.main_path, relative)
+        if not os.path.exists(ret):
+            os.makedirs(ret)
+        else:
+            print("exits: %s" % ret)
+        return ret
 
     def _read_cnf(self, cnf_path):
+        # TODO move config to xyz_app
+        # distinguish absdir with relevant dir
         with open(cnf_path) as f_obj:
             cnf_dict = json.load(f_obj)
         self._dir_list = cnf_dict["dir_path"]
@@ -62,27 +77,39 @@ class ClearLog(object):
             # TODO a dir may exist more than one type log, such as ~20201212.txt and 20201212.txt
             if os.path.isfile(abs_path) and self._is_target(element):
                 #chosen_file.append(abs_path)
-                print("element: %s" % element)
+                #print("element: %s" % element)
                 day_class.add(element)
-                print("updated: %s" %str(day_class))
+                #print("updated: %s" %str(day_class))
         return day_class#chosen_file, day_class
     
-    def _delete_file(self, day_class):
+    def _delete_file(self, dir_path, day_class):
         day_class = list(day_class)
         day_class.sort(reverse=True) #descent
         delete_days = day_class[self._limit:]
-        print("%s"%str(delete_days))
+        #print("%s"%str(delete_days))
         for file_path in delete_days:
+            abs_file_dir = os.path.join(dir_path, file_path)
             try:
-                os.remove(file_path)
+                os.remove(abs_file_dir)
+                print("remove: %s" % abs_file_dir)
             except:
-                print("fail to remove %s" %file_path)
+                print("fail to remove %s" %abs_file_dir)
 
     def run(self):
         # TODO is it neccessary to traverse all sub dir path? 
         for dir_path in self._dir_list:
-            day_class = self._collect_all_log(dir_path)
-            self._delete_file(day_class)
+            if os.path.isabs(dir_path):
+                abs_dir_path = dir_path
+            else:
+                abs_dir_path = os.path.join(self.main_path, dir_path)
+            day_class = self._collect_all_log(abs_dir_path)
+            self._delete_file(abs_dir_path, day_class)
+    
+        
+
+
+def get_today_str(fmt="%Y%m%d"):
+    return time.strftime(fmt, time.localtime())
     
         
 
